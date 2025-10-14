@@ -70,29 +70,29 @@ function NotesDashboard({ token, onLogout }) {
         <input
           placeholder="Title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           required
         />
         <input
           placeholder="Content"
           value={content}
-          onChange={e => setContent(e.target.value)}
+          onChange={(e) => setContent(e.target.value)}
           required
         />
         <button type="submit">Add Note</button>
       </form>
-      {error && <div style={{color: "red"}}>{error}</div>}
+      {error && <div style={{ color: "red" }}>{error}</div>}
       <ul>
-        {notes.map(note =>
+        {notes.map((note) =>
           editId === note.id ? (
             <li key={note.id}>
               <input
                 value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
+                onChange={(e) => setEditTitle(e.target.value)}
               />
               <input
                 value={editContent}
-                onChange={e => setEditContent(e.target.value)}
+                onChange={(e) => setEditContent(e.target.value)}
               />
               <button onClick={() => handleUpdate(note.id)}>Save</button>
               <button onClick={() => setEditId(null)}>Cancel</button>
