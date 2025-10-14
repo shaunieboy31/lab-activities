@@ -18,24 +18,26 @@ function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Login</h2>
-      <input
-        placeholder="Username"
-        value={username}
-        onChange={e => setUsername(e.target.value)}
-        required
-      />
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-        required
-      />
-      <button type="submit">Login</button>
-      {error && <div style={{color: "red"}}>{error}</div>}
-    </form>
+    <div className="centered-container">
+      <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
+        <input
+          placeholder="Username"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          required
+        />
+        <input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+        {error && <div className="error-message">{error}</div>}
+        <button type="submit">Login</button>
+      </form>
+    </div>
   );
 }
 

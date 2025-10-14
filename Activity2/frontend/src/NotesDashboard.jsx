@@ -63,7 +63,7 @@ function NotesDashboard({ token, onLogout }) {
   };
 
   return (
-    <div>
+    <div className="centered-container">
       <h2>Your Notes</h2>
       <button onClick={onLogout}>Logout</button>
       <form onSubmit={handleAdd}>
@@ -82,7 +82,7 @@ function NotesDashboard({ token, onLogout }) {
         <button type="submit">Add Note</button>
       </form>
       {error && <div style={{ color: "red" }}>{error}</div>}
-      <ul>
+      <ul style={{ padding: 0, listStyle: "none" }}>
         {notes.map((note) =>
           editId === note.id ? (
             <li key={note.id}>
@@ -98,8 +98,13 @@ function NotesDashboard({ token, onLogout }) {
               <button onClick={() => setEditId(null)}>Cancel</button>
             </li>
           ) : (
-            <li key={note.id}>
-              <strong>{note.title}</strong>: {note.content}
+            <li key={note.id} className="note-card">
+              <div>
+                <strong>{note.title}</strong>
+                <div style={{ fontSize: "0.95em", color: "#555" }}>
+                  {note.content}
+                </div>
+              </div>
               <button onClick={() => handleEdit(note)}>Edit</button>
               <button onClick={() => handleDelete(note.id)}>Delete</button>
             </li>

@@ -14,7 +14,7 @@ import { Note } from './notes/note.entity';
       type: 'sqlite',
       database: 'notes.sqlite',
       entities: [User, Note],
-      synchronize: true, // For development only!
+      synchronize: true,
     }),
     TypeOrmModule.forFeature([User, Note]),
     AuthModule,

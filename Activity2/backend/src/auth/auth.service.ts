@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
@@ -14,8 +14,15 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const hashed = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create({ ...dto, password: hashed });
-    return { id: user.id, username: user.username };
+    console.log('Registering user:', dto.username);
+    try {
+      const user = await this.usersService.create({ ...dto, password: hashed });
+      console.log('User created:', user);
+      return { id: user.id, username: user.username };
+    } catch (err) {
+      console.error('Registration error:', err);
+      throw new BadRequestException('Registration failed');
+    }
   }
 
   async login(dto: LoginDto) {
