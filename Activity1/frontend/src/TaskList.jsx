@@ -25,7 +25,6 @@ function TaskList() {
   const loadTasks = async () => {
     try {
       const res = await getTasks();
-      console.log("Fetched tasks:", res.data);
       const data = Array.isArray(res.data) ? res.data : res.data.tasks || [];
       setTasks(data);
     } catch (err) {
@@ -52,8 +51,8 @@ function TaskList() {
       setNewDeadline("");
       await loadTasks();
     } catch (err) {
-      setError("Error adding task.");
       console.error(err);
+      setError("Error adding task.");
     }
   };
 
@@ -99,8 +98,8 @@ function TaskList() {
       setEditId(null);
       await loadTasks();
     } catch (err) {
-      setError("Error updating task.");
       console.error(err);
+      setError("Error updating task.");
     }
   };
 
@@ -182,14 +181,13 @@ function TaskList() {
         </button>
       </div>
 
-      {/* Error message */}
       {error && (
         <div style={{ color: "#FFB300", marginBottom: "10px", fontWeight: "bold" }}>
           {error}
         </div>
       )}
 
-      {/* Search and Filter */}
+      {/* Search + Filter */}
       <div style={{ margin: "20px auto", display: "flex", justifyContent: "center" }}>
         <input
           type="text"
@@ -216,15 +214,11 @@ function TaskList() {
       </div>
 
       {/* ✅ Progress Tracker */}
-<div style={{ margin: "20px auto", color: "#FFB300", fontWeight: "bold" }}>
-  {tasks.length > 0 ? (
-    <>
-      {tasks.filter((t) => t.completed).length} of {tasks.length} tasks completed
-    </>
-  ) : (
-    "No tasks yet"
-  )}
-</div>
+      <div style={{ margin: "20px auto", color: "#FFB300", fontWeight: "bold" }}>
+        {tasks.length > 0
+          ? `${tasks.filter((t) => t.completed).length} of ${tasks.length} tasks completed`
+          : "No tasks yet"}
+      </div>
 
       {/* Task List */}
       <ul style={{ listStyle: "none", padding: 0 }}>
@@ -296,10 +290,7 @@ function TaskList() {
                     {t.title}
                   </span>
                   <span style={{ marginLeft: "10px", color: "#888" }}>
-                    🗓️{" "}
-                    {t.deadline
-                      ? new Date(t.deadline).toLocaleDateString()
-                      : "No date"}
+                    🗓️ {t.deadline ? new Date(t.deadline).toLocaleDateString() : "No date"}
                   </span>
                   <button onClick={() => openView(t)} style={viewButtonStyle}>
                     View
