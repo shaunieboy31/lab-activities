@@ -21,20 +21,20 @@ function ViewTaskModal({ task, onClose }) {
     >
       <div
         style={{
-          background: "#fff0f5",
-          border: "2px solid #ff69b4",
+          background: "#232323",
+          border: "2px solid #FFB300",
           borderRadius: "20px",
           padding: "30px",
           minWidth: "300px",
-          color: "#ff1493",
+          color: "rgba(255, 179, 0, 1)",
           position: "relative",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 style={{ marginBottom: "20px" }}>{task.title}</h2>
+        <h2 style={{ marginBottom: "20px", color: "#FFB300" }}>{task.title}</h2>
         <p>
           <strong>Description:</strong>{" "}
-          <span style={{ color: "#ff1493", fontWeight: "bold" }}>
+          <span style={{ color: "#FFB300", fontWeight: "bold" }}>
             {task.description && task.description.trim()
               ? task.description
               : "No description"}
@@ -49,7 +49,7 @@ function ViewTaskModal({ task, onClose }) {
         <button
           onClick={onClose}
           style={{
-            backgroundColor: "#ff69b4",
+            backgroundColor: "#c58b04ff",
             color: "white",
             border: "none",
             borderRadius: "10px",

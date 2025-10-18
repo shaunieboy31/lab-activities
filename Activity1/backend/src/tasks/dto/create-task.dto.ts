@@ -4,3 +4,4 @@ export class CreateTaskDto {
   completed?: boolean;
   deadline?: string;
 }
+
