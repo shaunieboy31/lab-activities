@@ -1,0 +1,10 @@
+{
+  "name": "activity4-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "serve -l 8080"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
