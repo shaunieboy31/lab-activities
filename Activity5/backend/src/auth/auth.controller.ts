@@ -1,17 +1,30 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Request, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   @Post('register')
-  register(@Body() body: { username: string; password: string }) {
-    return this.authService.register(body.username, body.password);
+  async register(@Body() body: { username: string; password: string; displayName?: string }) {
+    try {
+      return await this.authService.register(body);
+    } catch (e) {
+      throw new BadRequestException(e.message || 'Registration failed');
+    }
   }
 
   @Post('login')
-  login(@Body() body: { username: string; password: string }) {
-    return this.authService.login(body.username, body.password);
+  async login(@Body() body: { username: string; password: string }) {
+    const user = await this.authService.validateUser(body.username, body.password);
+    if (!user) throw new BadRequestException('Invalid credentials');
+    return this.authService.login(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  me(@Request() req: any) {
+    return req.user;
   }
 }

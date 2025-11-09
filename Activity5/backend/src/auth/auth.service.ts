@@ -1,31 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    @InjectRepository(User) private readonly userRepo: Repository<User>,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private usersService: UsersService, private jwtService: JwtService) {}
 
-  async register(username: string, password: string) {
-    const hashed = await bcrypt.hash(password, 10);
-    const user = this.userRepo.create({ username, password: hashed });
-    return this.userRepo.save(user);
+  async validateUser(username: string, pass: string) {
+    const user = await this.usersService.findByUsername(username);
+    if (!user) return null;
+    // use the entity's password field (stored as hash)
+    const ok = await bcrypt.compare(pass, (user as any).password || '');
+    if (ok) {
+      const { password, ...safe } = user as any;
+      return safe;
+    }
+    return null;
   }
 
-  async login(username: string, password: string) {
-    const user = await this.userRepo.findOne({ where: { username } });
-    if (!user) return null;
+  async login(user: any) {
+    const payload = { username: user.username, sub: user.id };
+    return {
+      accessToken: this.jwtService.sign(payload),
+      user,
+    };
+  }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return null;
-
-    const token = await this.jwtService.signAsync({ id: user.id, username: user.username });
-    return { access_token: token };
+  async register(data: { username: string; password: string; displayName?: string }) {
+    const existing = await this.usersService.findByUsername(data.username);
+    if (existing) throw new BadRequestException('User already exists');
+    const passwordHash = await bcrypt.hash(data.password, 10);
+    // save hashed password into "password" field to match entity
+    const created = await this.usersService.create({
+      username: data.username,
+      password: passwordHash,
+      displayName: data.displayName,
+    } as any);
+    return this.login(created);
   }
 }
