@@ -27,8 +27,9 @@ export class PostsService {
 
   async create(title: string, content: string, userId: number) {
     const user = await this.usersRepo.findOne({ where: { id: userId } });
-    const newPost = this.postsRepo.create({ title, content, user });    
-    return this.postsRepo.save(newPost);
+    const newPost = this.postsRepo.create({ title, content, user } as any);
+    await this.postsRepo.save(newPost);
+    return newPost;
   }
 
   async update(id: number, data: any) {

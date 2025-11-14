@@ -1,17 +1,16 @@
-import { Controller, Get, Post as PostReq, Body, Param } from '@nestjs/common';
+import { Controller, Post, Param, Body, Req, UseGuards } from '@nestjs/common';
 import { CommentsService } from './comments.service';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { DevAuthGuard } from '../common/dev-auth.guard';
 
-@Controller('comments')
+@Controller('posts/:postId/comments')
 export class CommentsController {
-  constructor(private readonly commentsService: CommentsService) {}
+  constructor(private commentsService: CommentsService) {}
 
-  @Get(':postId')
-  getComments(@Param('postId') postId: number) {
-    return this.commentsService.findAllByPost(postId);
-  }
-
-  @PostReq()
-  create(@Body() body: { postId: number; userId: number; text: string }) {
-    return this.commentsService.create(body.postId, body.userId, body.text);
+  @Post()
+  @UseGuards(DevAuthGuard)
+  async create(@Param('postId') postId: string, @Body() body: CreateCommentDto, @Req() req: any) {
+    const user = req.user;
+    return this.commentsService.create(Number(postId), user, body.content);
   }
 }

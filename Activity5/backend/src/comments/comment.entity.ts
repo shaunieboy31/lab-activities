@@ -1,20 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { User } from '../auth/user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { Post } from '../posts/post.entity';
+import { User } from '../auth/user.entity';
 
 @Entity()
 export class Comment {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  // service expects "content"
+  @Column('text')
   content: string;
 
-  // 5️⃣ Each comment is written by one user
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
+  post: Post;
+
+  @ManyToOne(() => User, { eager: true })
   user: User;
 
-  // 6️⃣ Each comment belongs to one post
-  @ManyToOne(() => Post, (post) => post.comments)
-  post: Post;
+  @CreateDateColumn({ type: 'datetime' })
+  createdAt: Date;
 }

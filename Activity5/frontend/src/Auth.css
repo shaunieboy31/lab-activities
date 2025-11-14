@@ -1,0 +1,109 @@
+/* body and global styles */
+body {
+  background: #0b0b0c;
+  color: #fff;
+  font-family: "Inter", sans-serif;
+  margin: 0;
+}
+
+/* site header (matches home navbar look) */
+.site-header {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 28px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.95), rgba(0,0,0,0.9));
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  z-index: 999;
+}
+.site-header .brand {
+  color: #ffb700;
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-decoration: none;
+  margin-right: auto;
+}
+.site-header nav a {
+  color: rgba(255,255,255,0.85);
+  margin-left: 14px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.site-header nav a:hover { color: #ffb700; }
+
+/* centered auth page card to match home cards */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 110px 16px 60px; /* allow header space */
+  background: linear-gradient(180deg, rgba(11,11,12,1) 0%, rgba(13,13,14,1) 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 620px;
+  background: linear-gradient(180deg, #0f0f10, #0c0c0d);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.7);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+/* small links on card */
+.auth-links { display:flex; gap:12px; margin-bottom: 10px; }
+.auth-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size:0.9rem; }
+.auth-links a:hover { color: #ffb700; }
+
+/* title */
+.auth-card h2 {
+  margin: 4px 0 18px;
+  font-size: 1.6rem;
+  color: #fff;
+}
+
+/* input */
+.auth-field { display:block; margin-bottom:12px; }
+.auth-field input {
+  width: 100%;
+  background: #080808;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+}
+.auth-field input::placeholder { color: rgba(255,255,255,0.35); }
+.auth-field input:focus {
+  border-color: rgba(255,183,0,0.6);
+  box-shadow: 0 6px 24px rgba(255,183,0,0.06);
+}
+
+/* yellow button like home */
+.btn-yellow {
+  background: #ffb700;
+  color: #0b0b0b;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.45);
+}
+
+/* error */
+.auth-error { color: #ff6b6b; margin-top: 10px; font-size: 0.95rem; }
+
+/* responsive */
+@media (max-width: 520px) {
+  .auth-card { padding: 18px; margin: 12px; }
+}
