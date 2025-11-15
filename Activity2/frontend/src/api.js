@@ -1,17 +1,31 @@
+// If you ever add a backend, this will connect to it using axios.
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "http://localhost:5000", // you can change this later if you have a backend
 });
 
-export const register = (data) => API.post("/auth/register", data);
-export const login = (data) => API.post("/auth/login", data);
+export const getNotes = async () => {
+  return Promise.resolve({ data: JSON.parse(localStorage.getItem("notes") || "[]") });
+};
 
-export const getNotes = (token) =>
-  API.get("/notes", { headers: { Authorization: `Bearer ${token}` } });
-export const createNote = (token, data) =>
-  API.post("/notes", data, { headers: { Authorization: `Bearer ${token}` } });
-export const updateNote = (token, id, data) =>
-  API.put(`/notes/${id}`, data, { headers: { Authorization: `Bearer ${token}` } });
-export const deleteNote = (token, id) =>
-  API.delete(`/notes/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+export const createNote = async (token, note) => {
+  const existing = JSON.parse(localStorage.getItem("notes") || "[]");
+  const newNote = { ...note, id: Date.now() };
+  localStorage.setItem("notes", JSON.stringify([...existing, newNote]));
+  return Promise.resolve({ data: newNote });
+};
+
+export const updateNote = async (token, id, updated) => {
+  const notes = JSON.parse(localStorage.getItem("notes") || "[]").map((n) =>
+    n.id === id ? { ...n, ...updated } : n
+  );
+  localStorage.setItem("notes", JSON.stringify(notes));
+  return Promise.resolve({ data: updated });
+};
+
+export const deleteNote = async (token, id) => {
+  const notes = JSON.parse(localStorage.getItem("notes") || "[]").filter((n) => n.id !== id);
+  localStorage.setItem("notes", JSON.stringify(notes));
+  return Promise.resolve();
+};

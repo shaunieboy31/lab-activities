@@ -1,0 +1,130 @@
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+  background-color: #0b0c10;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.login-card {
+  background: #1a1c23;
+  padding: 2.5rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(255, 166, 0, 0.2);
+  text-align: center;
+  width: 360px;
+  transition: 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 35px rgba(255, 166, 0, 0.3);
+}
+
+.login-logo {
+  width: 100px;
+  margin-bottom: 1rem;
+}
+
+.login-title {
+  color: #f9a825;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.login-subtitle {
+  color: #cfcfcf;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.login-input {
+  padding: 0.9rem;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #0f1117;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.login-input::placeholder {
+  color: #777;
+}
+
+.login-input:focus {
+  border-color: #f9a825;
+  box-shadow: 0 0 8px rgba(249, 168, 37, 0.5);
+}
+
+.login-button {
+  background: linear-gradient(90deg, #f9a825, #ffb300);
+  border: none;
+  color: #0b0c10;
+  font-weight: 700;
+  padding: 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background: linear-gradient(90deg, #ffb300, #f9a825);
+  transform: scale(1.03);
+}
+
+.login-error {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  background: #2b0e0e;
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.login-success {
+  text-align: center;
+  background: #1a1c23;
+  padding: 2rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(249, 168, 37, 0.25);
+  width: 400px;
+}
+
+.login-success h1 {
+  color: #f9a825;
+}
+
+.login-hint {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #aaaaaa;
+}
+
+.login-hint span {
+  color: #f9a825;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.login-hint span:hover {
+  text-decoration: underline;
+}
