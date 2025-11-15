@@ -1,24 +1,24 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
-import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
-import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
+    // ensure TypeORM loads all entity files (including comments)
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: process.env.DB_FILE || 'dev.db',
-      entities: [join(__dirname, '**', '*.entity{.ts,.js}')],
+      database: 'db.sqlite',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'], // includes User, Post, Comment
       synchronize: true,
       logging: false,
+      keepConnectionAlive: true,
     }),
-    AuthModule,
     UsersModule,
+    AuthModule,
     PostsModule,
-    CommentsModule,
+    // import CommentsModule here if you create one
   ],
 })
 export class AppModule {}

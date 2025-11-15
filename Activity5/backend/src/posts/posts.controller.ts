@@ -1,4 +1,5 @@
-import { Controller, Get, Post as PostReq, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete, Put } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { PostsService } from './posts.service';
 
 @Controller('posts')
@@ -6,27 +7,31 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  getAll(@Query('page') page: number, @Query('limit') limit: number) {
-    return this.postsService.findAll(page, limit);
+  findAll() {
+    return this.postsService.findAll();
   }
 
-  @Get(':id')
-  getOne(@Param('id') id: number) {
-    return this.postsService.findOne(id);
+  @UseGuards(AuthGuard('jwt'))
+  @Post()
+  create(@Req() req: any, @Body() body: any) {
+    return this.postsService.create(body, req.user?.id);
   }
 
-  @PostReq()
-  create(@Body() body: { title: string; content: string; userId: number }) {
-    return this.postsService.create(body.title, body.content, body.userId);
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/comments')
+  addComment(@Param('id') id: string, @Req() req: any, @Body() body: any) {
+    return this.postsService.addComment(+id, req.user.id, body.content);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
-  update(@Param('id') id: number, @Body() body: any) {
-    return this.postsService.update(id, body);
+  update(@Param('id') id: string, @Req() req: any, @Body() body: any) {
+    return this.postsService.update(+id, req.user.id, body);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.postsService.remove(id);
+  remove(@Param('id') id: string, @Req() req: any) {
+    return this.postsService.remove(+id, req.user?.id);
   }
 }

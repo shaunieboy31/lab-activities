@@ -1,45 +1,44 @@
 import React, { useState } from 'react';
+import api from './api/api';
+import { useAuth } from './authContext';
 import { useNavigate } from 'react-router-dom';
-import api, { saveToken, saveUser } from './api/api';
-import './Auth.css';
 
-export default function Login() {
-  const [username, setUsername] = useState('');
+export default function Login(props) {
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [err, setErr] = useState('');
-  const nav = useNavigate();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  async function onSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setErr('');
     try {
-      const res = await api.post('/auth/login', { username, password });
-      const token = res.data?.accessToken;
-      const user = res.data?.user;
-      if (!token) throw new Error('No token returned');
-      saveToken(token);
-      saveUser(user);
-      nav('/home', { replace: true });
-    } catch (e) {
-      setErr(e?.response?.data?.message || e.message || 'Login failed');
+      const payload = { password };
+      if (identifier.includes('@')) payload.email = identifier;
+      else payload.username = identifier;
+
+      const res = await api.post('/auth/login', payload);
+      const data = res.data || {};
+      const token = data.access_token || data.token || data.jwt;
+      const user = data.user || data;
+      if (!token) throw new Error('No token returned from API');
+      // pass an object matching authContext.login({ user, token })
+      login({ user, token });
+      navigate('/');
+    } catch (err) {
+      console.error(err);
+      const msg = err?.response?.data?.message || err.message || 'Login failed';
+      alert(msg);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
         <h2>Sign in</h2>
-        <form onSubmit={onSubmit}>
-          <div className="auth-field">
-            <input value={username} onChange={e => setUsername(e.target.value)} placeholder="username" required />
-          </div>
-          <div className="auth-field">
-            <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="password" required />
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <button className="btn-yellow" type="submit">Sign in</button>
-          </div>
-          {err && <div className="auth-error">{err}</div>}
+        <form onSubmit={handleSubmit}>
+          <input value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="username or email" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="password" />
+          <button type="submit">Sign in</button>
         </form>
       </div>
     </div>

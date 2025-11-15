@@ -1,3 +1,76 @@
+/* theme variables + navbar styles */
+:root{
+  --bg: #0c0c0c;
+  --panel: #111;
+  --muted: #d1d1d1;
+  --accent: #f5c542;
+  --accent-strong: #f0b429;
+  --text: #ffffff;
+  --card: #141414;
+  --radius: 12px;
+  --gap: 1rem;
+}
+
+body{
+  background: var(--bg);
+  color: var(--text);
+  margin:0;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* NAVBAR */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 5%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand{
+  color:var(--accent);
+  font-weight:800;
+  font-size:1.15rem;
+  text-decoration:none;
+  letter-spacing:0.6px;
+}
+
+.nav-right{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.nav-link{
+  color:var(--muted);
+  text-decoration:none;
+  padding:6px 10px;
+  border-radius:8px;
+  transition: all .15s ease;
+}
+
+.nav-link:hover{ background: rgba(245,197,66,0.06); color:var(--text); }
+
+.nav-user{
+  color:var(--muted);
+  margin-right:8px;
+  font-weight:600;
+}
+
+.nav-logout{
+  background:var(--accent);
+  color:#071018;
+  border:none;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:700;
+}
+
 /* Feed.css */
 
 body {
@@ -167,9 +240,11 @@ body {
 }
 
 .project-card p {
-  color: #bbb;
-  font-size: 0.95rem;
-  margin-bottom: 1rem;
+  color: var(--muted); /* light grey */
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 8px 0 12px;
+  white-space: pre-wrap; /* preserve newlines */
 }
 
 .btn.primary {
@@ -275,9 +350,11 @@ body {
 }
 
 .blog-card p {
-  color: #ccc;
-  line-height: 1.6;
-  margin-bottom: 20px;
+  color: var(--muted); /* light grey */
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 8px 0 12px;
+  white-space: pre-wrap; /* preserve newlines */
 }
 
 .read-more {
@@ -795,4 +872,91 @@ body {
 
 .link:hover {
   text-decoration: underline;
+}
+
+/* auth page/card styles */
+.auth-page {
+  min-height: calc(100vh - 64px); /* leave room for navbar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02));
+}
+
+.auth-card {
+  background: #070707; /* solid black background */
+  color: #ffffff;
+  padding: 28px 28px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+  min-width: 320px;
+  max-width: 540px;
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* form elements inside auth-card */
+.auth-card h2 {
+  margin: 0 0 12px 0;
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.auth-card label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #d9d9d9;
+  font-size: 0.9rem;
+}
+
+.auth-card input[type="text"],
+.auth-card input[type="password"],
+.auth-card input[type="email"],
+.auth-card textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+/* if you want two inputs side-by-side with identical widths, wrap them in .two-cols */
+.auth-card .two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+/* make the submit button match card style */
+.auth-card .btn {
+  margin-top: 12px;
+  background: var(--accent);
+  color: #071018;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight:700;
+}
+/* small screens */
+@media (max-width: 520px) {
+  .auth-card { padding: 20px; margin: 0 12px; }
+  .auth-card .two-cols { grid-template-columns: 1fr; }
+}
+
+.auth-error {
+  background: rgba(255,80,60,0.08);
+  color: #ffb4aa;
+  border: 1px solid rgba(255,80,60,0.12);
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-weight:600;
 }

@@ -1,16 +1,10 @@
-import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import swaggerUi from 'swagger-ui-express';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  // handle preflight OPTIONS before any other middleware
+  // handle preflight before other middleware
   app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
@@ -29,16 +23,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  try {
-    const swaggerPath = join(__dirname, '..', 'swagger.json');
-    const swaggerDoc = JSON.parse(readFileSync(swaggerPath, 'utf8'));
-    (app as any).use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
-    console.log('Swagger UI mounted at /api/docs');
-  } catch (err) {
-    console.warn('Unable to load swagger.json - docs disabled:', err.message);
-  }
-
   await app.listen(3000);
-  console.log('Backend listening on http://localhost:3000');
 }
 bootstrap();

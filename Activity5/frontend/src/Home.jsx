@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "./api/api"; // adjust path if your api client is elsewhere
+import { useAuth } from "./authContext"; // make sure authContext exists and App is wrapped with AuthProvider
 import {
   FaLightbulb,
   FaEye,
@@ -11,42 +13,22 @@ import {
   FaTrash,
 } from "react-icons/fa";
 import "./Feed.css";
-import api from "./api/api";
 
 export default function Home() {
   const navigate = useNavigate();
-
-  const defaultPosts = [
-    {
-      id: null,
-      icon: <FaUsers />,
-      title: "Innovation Through Collaboration",
-      text: "Discover how collaboration drives groundbreaking innovation and transformative solutions.",
-      link: "/innovation-collaboration",
-      comments: [],
-    },
-    {
-      id: null,
-      icon: <FaLaptopCode />,
-      title: "Building Innovation Through Teamwork",
-      text: "Learn how effective teamwork is essential for fostering innovation in IT.",
-      link: "/building-teamwork",
-      comments: [],
-    },
-    {
-      id: null,
-      icon: <FaEye />,
-      title: "The Future of IT Collaboration",
-      text: "Explore emerging trends and future possibilities in IT collaboration.",
-      link: "/future-collaboration",
-      comments: [],
-    },
-  ];
-
-  const [blogPosts, setBlogPosts] = useState(defaultPosts);
+  const { currentUser } = useAuth();
+  // fallback to localStorage in case authContext isn't restored yet
+  const localStoredUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentUser") || "null");
+    } catch {
+      return null;
+    }
+  })();
+  const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState({ title: "", text: "", image: "" });
   const [showPopup, setShowPopup] = useState(false);
-  const [commentsInput, setCommentsInput] = useState({}); // keyed by postId or index
+  const [commentsInput, setCommentsInput] = useState({}); // keyed by postId
 
   // fetch posts (and their comments) from backend on mount
   useEffect(() => {
@@ -55,111 +37,177 @@ export default function Home() {
       .get("/posts")
       .then((res) => {
         if (!mounted) return;
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          // map server posts to the UI shape (keep icon placeholder)
-          const mapped = res.data.map((p) => ({
-            id: p.id,
-            icon: <FaUsers />,
-            title: p.title,
-            text: p.content || p.text || "",
-            link: p.link || "",
-            image: p.image || "",
-            comments: Array.isArray(p.comments) ? p.comments : [],
-          }));
-          setBlogPosts(mapped);
-        }
+        const payload = Array.isArray(res.data) ? res.data : [];
+        // normalize each post so UI always reads title, text, image, comments, user
+        const normalized = payload.map((p) => ({
+          id: p.id,
+          icon: <FaLightbulb />,
+          title: p.title ?? p.name ?? "",
+          // backend may return 'content' or 'text' — prefer content then text
+          text: p.content ?? p.text ?? "",
+          link: p.link ?? "",
+          image: p.image ?? p.img ?? "",
+          comments: p.comments ?? [],
+          // support both shapes: p.user object or p.userId / p.username fields
+          user:
+            p.user ??
+            (p.userId
+              ? { id: p.userId, displayName: p.displayName ?? p.username ?? null, username: p.username ?? null }
+              : null),
+        }));
+        setPosts(normalized);
       })
       .catch(() => {
-        // keep defaults if backend not available
+        setPosts([]);
       });
     return () => (mounted = false);
   }, []);
 
-  // --- Add new post (local fallback) ---
-  const handleAddPost = () => {
+  // Add new post (backend)
+  const handleAddPost = async () => {
     if (newPost.title.trim() === "" || newPost.text.trim() === "") return;
 
-    // try saving to backend if possible
+    // prefer authContext currentUser; fallback to token only if needed
     const token = localStorage.getItem("token");
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    api
-      .post("/posts", { title: newPost.title, content: newPost.text, image: newPost.image }, { headers })
-      .then((res) => {
-        const p = res.data;
-        setBlogPosts((prev) => [
-          ...prev,
-          {
-            id: p.id,
-            icon: <FaLightbulb />,
-            title: p.title,
-            text: p.content,
-            link: "",
-            image: p.image,
-            comments: p.comments || [],
-          },
-        ]);
-      })
-      .catch(() => {
-        // fallback to local-only post if backend fails
-        setBlogPosts((prev) => [
-          ...prev,
-          {
-            id: null,
-            icon: <FaLightbulb />,
-            title: newPost.title,
-            text: newPost.text,
-            link: "",
-            image: newPost.image,
-            comments: [],
-          },
-        ]);
-      });
+    if (!token && !currentUser) {
+      // don't auto-redirect; inform user
+      alert('Please sign in to add a post.');
+      return;
+    }
 
-    setNewPost({ title: "", text: "", image: "" });
-    setShowPopup(false);
-  };
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const res = await api.post("/posts", { title: newPost.title, content: newPost.text, image: newPost.image }, { headers });
+      const p = res.data;
 
-  // --- Add comment (saves to backend when possible) ---
-  const handleAddComment = async (index, content) => {
-    if (!content || !content.trim()) return;
-    const post = blogPosts[index];
-    // optimistic UI update
-    const newComment = { content, user: { displayName: "You" }, createdAt: new Date().toISOString() };
-    const updated = [...blogPosts];
-    updated[index] = { ...post, comments: [...(post.comments || []), newComment] };
-    setBlogPosts(updated);
-    setCommentsInput((s) => ({ ...s, [post.id ?? index]: "" }));
+      const createdUser = p.user ?? (currentUser ? { id: currentUser.id, displayName: currentUser.displayName ?? currentUser.username } : null);
 
-    // send to backend if post has id (persist)
-    if (post.id) {
-      try {
-        const token = localStorage.getItem("token");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const res = await api.post(`/posts/${post.id}/comments`, { content }, { headers });
-        const saved = res.data;
-        // replace optimistic comment with saved comment (match by createdAt or just refresh comments)
-        const refreshed = [...updated];
-        refreshed[index] = { ...post, comments: [...(post.comments || []), saved] };
-        setBlogPosts(refreshed);
-      } catch (err) {
-        console.error("comment save failed", err);
-        // optionally show error to user or revert optimistic update
-      }
-    } else {
-      // if post not persisted, keep local-only comment
+      setPosts((prev) => [
+        {
+          id: p.id,
+          icon: <FaLightbulb />,
+          title: p.title,
+          text: p.content,
+          link: "",
+          image: p.image,
+          comments: p.comments || [],
+          user: createdUser,
+        },
+        ...prev,
+      ]);
+      setNewPost({ title: "", text: "", image: "" });
+      setShowPopup(false);
+    } catch (err) {
+      console.error("create post failed", err, err?.response?.data);
+      // don't add a client-only post when the server failed.
+      alert(err?.response?.data?.message || "Failed to create post. Check backend logs.");
+      // keep form open so user can retry
     }
   };
 
-  const handleDeletePost = (index) => {
-    const updated = blogPosts.filter((_, i) => i !== index);
-    setBlogPosts(updated);
+  // Add comment (backend)
+  async function handleAddComment(postId, content) {
+    if (!content?.trim()) return;
+    if (!postId) {
+      alert('Missing post id — cannot create comment');
+      console.error('handleAddComment called with null postId', { postId, content });
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) { navigate('/login'); return; }
+
+    try {
+      console.debug('Posting comment', { postId, content });
+      const res = await api.post(`/posts/${postId}/comments`, { content }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const saved = res.data;
+      // ensure saved has user (fallback)
+      const userFallback = currentUser ?? JSON.parse(localStorage.getItem('currentUser') || 'null');
+      const commentWithUser = saved.user ? saved : { ...saved, user: userFallback ?? { id: null, username: 'You' } };
+
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments: [...(p.comments || []), commentWithUser] } : p));
+    } catch (err) {
+      console.error('comment save failed', err, err?.response?.data);
+      alert(err?.response?.data?.message || err?.response?.data || 'Failed to save comment');
+    }
   };
 
-  const handleDeleteComment = (postIndex, commentIndex) => {
-    const updated = [...blogPosts];
-    updated[postIndex].comments.splice(commentIndex, 1);
-    setBlogPosts(updated);
+  // Delete post (backend, only owner allowed server-side)
+  const handleDeletePost = async (postId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // not logged in
+      navigate("/login");
+      return;
+    }
+
+    // confirm destructive action
+    if (!window.confirm("Delete this post permanently? This will remove its comments as well.")) return;
+
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      await api.delete(`/posts/${postId}`, { headers });
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+    } catch (err) {
+      if (err.response?.status === 403) {
+        alert("You can only delete your own post");
+      } else if (err.response?.status === 401) {
+        navigate("/login");
+      } else {
+        console.error("delete post failed", err);
+        alert("Failed to delete post. See console for details.");
+      }
+    }
   };
+
+  // Delete comment (backend, only owner allowed server-side)
+  const handleDeleteComment = async (postId, commentId) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      await api.delete(`/posts/${postId}/comments/${commentId}`, { headers });
+      setPosts((prev) =>
+        prev.map((p) => (p.id !== postId ? p : { ...p, comments: p.comments.filter((c) => c.id !== commentId) }))
+      );
+    } catch (err) {
+      if (err.response?.status === 403) alert("You can only delete your own comment");
+      else console.error("delete comment failed", err);
+    }
+  };
+
+  // Create post (alternative implementation)
+  async function handleCreatePost(postPayload) {
+    const token = localStorage.getItem('token');
+    if (!token) { navigate('/login'); return; }
+
+    try {
+      const res = await api.post('/posts', postPayload, { headers: { Authorization: `Bearer ${token}` } });
+      const savedPost = res.data;
+      if (!savedPost?.id) {
+        console.warn('Server did not return saved post id', savedPost);
+        alert('Post created client-side but server did not return id. Check backend.');
+      }
+      // insert server-saved post into UI (use savedPost when available)
+      setPosts(prev => [ savedPost, ...prev ]);
+    } catch (err) {
+      console.error('create post failed', err, err?.response?.data);
+      alert(err?.response?.data?.message || 'Failed to create post');
+    }
+  };
+
+  function ensureArray(val) {
+    if (!val) return [];
+    return Array.isArray(val) ? val : [val];
+  }
+
+  // when updating posts from server:
+  // setPosts(prev => prev.map(p => p.id === saved.id ? { ...p, comments: ensureArray(saved.comments) } : p));
 
   return (
     <div className="home">
@@ -201,7 +249,7 @@ export default function Home() {
         </div>
 
         <div className="blog-grid">
-          {blogPosts.map((post, index) => (
+          {posts.map((post, index) => (
             <div key={post.id ?? index} className="blog-card">
               <div className="blog-icon">{post.icon}</div>
               <h3>{post.title}</h3>
@@ -213,9 +261,22 @@ export default function Home() {
                   Read More <FaArrowRight className="arrow" />
                 </button>
 
-                <button className="delete-btn" onClick={() => handleDeletePost(index)}>
-                  <FaTrash /> Delete Post
-                </button>
+                {/* Delete button: visible only to the owner (UI). Backend still enforces ownership. */}
+                {(() => {
+                  const viewerId = (currentUser && currentUser.id) || (localStoredUser && localStoredUser.id) || null;
+                  const postOwnerId = post.user?.id ?? post.userId ?? null; // support either shape
+                  const isOwner = viewerId && postOwnerId && viewerId === postOwnerId;
+                  return isOwner ? (
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleDeletePost(post.id)}
+                      title="Delete this post"
+                      style={{ marginLeft: 12 }}
+                    >
+                      <FaTrash /> Delete Post
+                    </button>
+                  ) : null;
+                })()}
               </div>
 
               {/* Comments Section */}
@@ -223,16 +284,15 @@ export default function Home() {
                 <h4>
                   <FaCommentDots /> Comments
                 </h4>
-                <ul>
-                  {(post.comments || []).map((c, i) => (
-                    <li key={i} className="comment-item">
-                      <span>{c.content ?? c}</span>
-                      <button className="delete-comment-btn" onClick={() => handleDeleteComment(index, i)}>
-                        <FaTrash />
-                      </button>
-                    </li>
+                {/* Comments list */}
+                <div className="comments">
+                  {(post.comments || []).map(c => (
+                    <div key={c.id} className="comment">
+                      <strong className="comment-user">{c.user?.username ?? 'Anon'}</strong>
+                      <div className="comment-text">{c.text}</div>
+                    </div>
                   ))}
-                </ul>
+                </div>
 
                 <input
                   type="text"
@@ -241,7 +301,8 @@ export default function Home() {
                   onChange={(e) => setCommentsInput((s) => ({ ...s, [post.id ?? index]: e.target.value }))}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      handleAddComment(index, commentsInput[post.id ?? index] ?? "");
+                      const text = commentsInput[post.id ?? index] ?? "";
+                      handleAddComment(post.id, text);
                     }
                   }}
                 />
@@ -251,7 +312,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Add New Post Popup */}
+      {/* Add New Post Popup (unchanged UI, calls handleAddPost) */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
