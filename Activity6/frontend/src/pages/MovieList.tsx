@@ -19,13 +19,14 @@ export default function MovieList(){
       .catch(err=>console.error(err))
   },[])
 
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
 
   return (
     <div className="container">
       <h1>Movies</h1>
       <div style={{marginBottom:12}}>
         {user?.role === 'admin' && <a href="/admin">Admin: create/edit movies</a>}
+        {user && <span style={{marginLeft:12}}>Welcome {user.username}! <button onClick={logout} style={{marginLeft:8}}>Logout</button></span>}
         {!user && <span style={{marginLeft:12}}><a href="/login">Login / Signup</a></span>}
       </div>
       <ul>

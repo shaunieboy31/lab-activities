@@ -2,22 +2,31 @@ import 'reflect-metadata'
 import { DataSource } from 'typeorm'
 import { Movie } from './entities/movie.entity'
 import { Review } from './entities/review.entity'
+import { User } from './users/user.entity'
+import * as bcrypt from 'bcrypt'
 
 async function run(){
   const ds = new DataSource({
     type: 'sqlite',
     database: 'db.sqlite',
-    entities: [Movie, Review],
+    entities: [Movie, Review, User],
     synchronize: true,
   })
   await ds.initialize()
 
   const movieRepo = ds.getRepository(Movie)
   const reviewRepo = ds.getRepository(Review)
+  const userRepo = ds.getRepository(User)
 
   // Delete existing data
   await reviewRepo.delete({})
   await movieRepo.delete({})
+  await userRepo.delete({})
+
+  // Create admin user
+  const adminHash = await bcrypt.hash('admin', 10)
+  const adminUser = userRepo.create({ username: 'admin', password: adminHash, role: 'admin' })
+  await userRepo.save(adminUser)
 
   const m1 = movieRepo.create({ title: 'The First Adventure', description: 'An exciting journey.', releaseDate: '2020-05-01' })
   const m2 = movieRepo.create({ title: 'Romance in Code', description: 'Love and algorithms.', releaseDate: '2021-02-14' })

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../AuthProvider'
 
 export default function Auth(){
   const [username, setUsername] = useState('')
@@ -8,27 +9,31 @@ export default function Auth(){
   const [mode, setMode] = useState<'login'|'signup'>('login')
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { setUser } = useAuth()
 
-  const submit = async (e: React.FormEvent) =>{
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if(!username.trim()) return setError('Username required')
-    if(!password) return setError('Password required')
-    try{
+    if (!username.trim()) return setError('Username required')
+    if (!password) return setError('Password required')
+    try {
       const body = { username: username.trim(), password }
-      if(mode === 'signup'){
+      if (mode === 'signup') {
         await axios.post('http://localhost:3000/auth/signup', body)
       }
       const res = await axios.post('http://localhost:3000/auth/login', body)
       const token = res.data?.access_token
-      if(token){
+      if (token) {
         localStorage.setItem('token', token)
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        // Fetch and set user
+        const userRes = await axios.get('http://localhost:3000/auth/me')
+        setUser(userRes.data)
         navigate('/')
       } else {
         setError('No token returned')
       }
-    }catch(err:any){
+    } catch (err: any) {
       console.error(err)
       setError(err?.response?.data?.message || err.message || 'Auth failed')
     }

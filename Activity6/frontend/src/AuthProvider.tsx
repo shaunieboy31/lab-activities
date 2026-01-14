@@ -3,23 +3,45 @@ import axios from 'axios'
 
 type User = { id: number; username: string; role: string }
 
-const AuthContext = createContext<{ user: User | null; setUser: (u: User | null) => void }>({ user: null, setUser: ()=>{} })
+type AuthContextType = {
+  user: User | null
+  ready: boolean
+  setUser: (u: User | null) => void
+  logout: () => void
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  ready: false,
+  setUser: () => {},
+  logout: () => {}
+})
 
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useState<User | null>(null)
+  const [ready, setReady] = useState(false)
 
-  useEffect(()=>{
+  useEffect(() => {
     const token = localStorage.getItem('token')
-    if(token){
+    if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      // fetch current user
-      axios.get('http://localhost:3000/auth/me').then(r=>setUser(r.data)).catch(()=>{
+      axios.get('http://localhost:3000/auth/me').then(r => setUser(r.data)).catch(() => {
+        localStorage.removeItem('token')
+        delete axios.defaults.headers.common['Authorization']
         setUser(null)
-      })
+      }).finally(() => setReady(true))
+    } else {
+      setReady(true)
     }
   }, [])
 
-  return <AuthContext.Provider value={{ user, setUser }}>{children}</AuthContext.Provider>
+  const logout = () => {
+    localStorage.removeItem('token')
+    delete axios.defaults.headers.common['Authorization']
+    setUser(null)
+  }
+
+  return <AuthContext.Provider value={{ user, ready, setUser, logout }}>{children}</AuthContext.Provider>
 }
 
-export const useAuth = ()=> useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext)

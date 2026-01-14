@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import { useAuth } from '../AuthProvider'
 
 type Review = {
   id?: number
@@ -18,6 +19,7 @@ type Movie = {
 
 export default function MovieDetail(){
   const { id } = useParams()
+  const { user } = useAuth()
   const [movie, setMovie] = useState<Movie | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [rating, setRating] = useState<number>(5)
@@ -66,6 +68,18 @@ export default function MovieDetail(){
     }
   }
 
+  const deleteReview = async (reviewId?: number) => {
+    if (!reviewId) return
+    if (!confirm('Delete this review?')) return
+    try {
+      await axios.delete(`http://localhost:3000/reviews/${reviewId}`)
+      setReviews(reviews.filter(r => r.id !== reviewId))
+    } catch (e) {
+      console.error(e)
+      setError('Failed to delete review')
+    }
+  }
+
   if (loading) return <div>Loading...</div>
   if (error) return <div style={{color:'red'}}>{error}</div>
   if(!movie) return <div>No movie found</div>
@@ -80,7 +94,10 @@ export default function MovieDetail(){
       <ul>
         {reviews.length === 0 && <li>No reviews yet</li>}
         {reviews.map((r, idx)=> (
-          <li key={r.id ?? idx}>{r.rating} — {r.comment} {r.user ? <em>by {r.user.username}</em> : null}</li>
+          <li key={r.id ?? idx} style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+            <div>{r.rating} — {r.comment} {r.user ? <em>by {r.user.username}</em> : null}</div>
+            {user?.role === 'admin' && <button onClick={() => deleteReview(r.id)} style={{marginLeft: 8}}>Delete</button>}
+          </li>
         ))}
       </ul>
 

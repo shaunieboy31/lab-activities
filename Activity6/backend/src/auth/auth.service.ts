@@ -20,6 +20,14 @@ export class AuthService {
     return this.usersRepo.save(u)
   }
 
+  async ensureAdminUser() {
+    const existing = await this.usersRepo.findOne({ where: { username: 'admin' } })
+    if (existing) return existing
+    const hash = await bcrypt.hash('admin', 10)
+    const admin = this.usersRepo.create({ username: 'admin', password: hash, role: 'admin' } as any)
+    return this.usersRepo.save(admin)
+  }
+
   async validateUser(username: string, pass: string) {
     const user = await this.usersRepo.findOne({ where: { username } })
     if (!user) return null

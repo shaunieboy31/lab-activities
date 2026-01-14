@@ -10,7 +10,7 @@ export default function MovieAdmin(){
   const [movies, setMovies] = useState<Movie[]>([])
   const [editing, setEditing] = useState<Movie | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const { user } = useAuth()
+  const { user, ready } = useAuth()
   const navigate = useNavigate()
 
   const load = async ()=>{
@@ -26,10 +26,11 @@ export default function MovieAdmin(){
   useEffect(()=>{ load() }, [])
 
   useEffect(()=>{
+    if(!ready) return
     if(!user || user.role !== 'admin'){
       navigate('/login')
     }
-  }, [user])
+  }, [user, ready])
 
   const createMovie = async (data: any)=>{
     await axios.post('http://localhost:3000/movies', data)
