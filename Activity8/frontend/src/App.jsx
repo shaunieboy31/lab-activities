@@ -9,7 +9,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>💬 Chatroom App</h1>
+        <h1>💬 Chatroom Application</h1>
       </header>
 
       <div className="app-container">

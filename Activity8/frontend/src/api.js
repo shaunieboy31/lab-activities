@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = 'http://localhost:3000'
+const API_URL = 'http://localhost:3002'
 
 export const chatroomApi = {
   getAll: () => axios.get(`${API_URL}/chatrooms`),

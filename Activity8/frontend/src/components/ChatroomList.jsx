@@ -10,12 +10,14 @@ export function ChatroomList({ onSelectRoom }) {
 
   useEffect(() => {
     fetchChatrooms()
+    const interval = setInterval(fetchChatrooms, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const fetchChatrooms = async () => {
     try {
       const res = await chatroomApi.getAll()
-      setChatrooms(res.data)
+      setChatrooms(res.data || [])
       setLoading(false)
     } catch (err) {
       console.error('Failed to fetch chatrooms:', err)
@@ -34,17 +36,15 @@ export function ChatroomList({ onSelectRoom }) {
       })
       setNewRoomName('')
       setNewRoomDesc('')
-      fetchChatrooms()
+      await fetchChatrooms()
     } catch (err) {
       console.error('Failed to create room:', err)
     }
   }
 
-  if (loading) return <div className="chatroom-list"><p>Loading...</p></div>
-
   return (
     <div className="chatroom-list">
-      <h2>Chatrooms</h2>
+      <h2>💬 Chatrooms</h2>
 
       <form onSubmit={handleCreateRoom} className="create-room-form">
         <input
@@ -52,6 +52,7 @@ export function ChatroomList({ onSelectRoom }) {
           placeholder="Room name..."
           value={newRoomName}
           onChange={(e) => setNewRoomName(e.target.value)}
+          required
         />
         <input
           type="text"
@@ -63,17 +64,23 @@ export function ChatroomList({ onSelectRoom }) {
       </form>
 
       <div className="rooms">
-        {chatrooms.map((room) => (
-          <div
-            key={room.id}
-            className="room-card"
-            onClick={() => onSelectRoom(room)}
-          >
-            <h3>{room.name}</h3>
-            <p>{room.description}</p>
-            <span className="member-count">👥 {room.memberCount} members</span>
-          </div>
-        ))}
+        {loading ? (
+          <div className="no-messages">Loading...</div>
+        ) : chatrooms.length === 0 ? (
+          <div className="no-messages">No chatrooms yet. Create one!</div>
+        ) : (
+          chatrooms.map((room) => (
+            <div
+              key={room.id}
+              className="room-card"
+              onClick={() => onSelectRoom(room)}
+            >
+              <h3>{room.name}</h3>
+              <p>{room.description || 'No description'}</p>
+              <span className="member-count">💬 {room.messageCount || 0} messages</span>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )
