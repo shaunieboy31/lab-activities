@@ -14,7 +14,9 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WeatherController = void 0;
 const common_1 = require("@nestjs/common");
+const swagger_1 = require("@nestjs/swagger");
 const weather_service_1 = require("./weather.service");
+const weather_dto_1 = require("./weather.dto");
 let WeatherController = class WeatherController {
     constructor(svc) {
         this.svc = svc;
@@ -24,6 +26,9 @@ let WeatherController = class WeatherController {
     }
 };
 __decorate([
+    (0, swagger_1.ApiOperation)({ summary: 'Get weather by city' }),
+    (0, swagger_1.ApiQuery)({ name: 'city', description: 'City name', example: 'London' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Weather data', type: weather_dto_1.WeatherResponseDto }),
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('city')),
     __metadata("design:type", Function),
@@ -31,6 +36,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], WeatherController.prototype, "get", null);
 WeatherController = __decorate([
+    (0, swagger_1.ApiTags)('weather'),
     (0, common_1.Controller)('weather'),
     __metadata("design:paramtypes", [weather_service_1.WeatherService])
 ], WeatherController);
