@@ -54,6 +54,18 @@ export const createEvent = async (payload, organizerKey) => {
   return handle(res, 'Failed to create event');
 };
 
+export const updateEvent = async (id, payload, organizerKey) => {
+  const res = await fetch(`${API_URL}/api/events/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(organizerKey ? { 'x-org-key': organizerKey } : {})
+    },
+    body: JSON.stringify(payload)
+  });
+  return handle(res, 'Failed to update event');
+};
+
 const withOrg = (organizerKey) => ({
   ...(organizerKey ? { 'x-org-key': organizerKey } : {})
 });
@@ -64,6 +76,69 @@ export const loginOrganizer = async (organizerKey) => {
     headers: withOrg(organizerKey)
   });
   return handle(res, 'Organizer login failed');
+};
+
+export const loginAdmin = async (adminKey) => {
+  const res = await fetch(`${API_URL}/api/auth/admin`, {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey }
+  });
+  return handle(res, 'Admin login failed');
+};
+
+export const fetchOrganizers = async (adminKey) => {
+  const res = await fetch(`${API_URL}/api/admin/organizers`, {
+    headers: { 'x-admin-key': adminKey }
+  });
+  return handle(res, 'Failed to load organizers');
+};
+
+export const createOrganizer = async (payload, adminKey) => {
+  const res = await fetch(`${API_URL}/api/admin/organizers`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': adminKey
+    },
+    body: JSON.stringify(payload)
+  });
+  return handle(res, 'Failed to create organizer');
+};
+
+export const updateOrganizer = async (id, payload, adminKey) => {
+  const res = await fetch(`${API_URL}/api/admin/organizers/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-key': adminKey
+    },
+    body: JSON.stringify(payload)
+  });
+  return handle(res, 'Failed to update organizer');
+};
+
+export const deleteOrganizer = async (id, adminKey) => {
+  const res = await fetch(`${API_URL}/api/admin/organizers/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminKey }
+  });
+  return handle(res, 'Failed to delete organizer');
+};
+
+export const updateRegistration = async (id, payload) => {
+  const res = await fetch(`${API_URL}/api/registrations/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return handle(res, 'Failed to update registration');
+};
+
+export const cancelRegistration = async (id) => {
+  const res = await fetch(`${API_URL}/api/registrations/${id}`, {
+    method: 'DELETE'
+  });
+  return handle(res, 'Failed to cancel registration');
 };
 
 export const suspendEvent = async (eventId, organizerKey) => {
@@ -88,4 +163,21 @@ export const deleteEvent = async (eventId, organizerKey) => {
     headers: withOrg(organizerKey)
   });
   return handle(res, 'Failed to delete');
+};
+
+export const fetchAnnouncements = async (eventId) => {
+  const res = await fetch(`${API_URL}/api/events/${eventId}/announcements`);
+  return handle(res, 'Failed to load announcements');
+};
+
+export const createAnnouncement = async (eventId, payload, organizerKey) => {
+  const res = await fetch(`${API_URL}/api/events/${eventId}/announcements`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...withOrg(organizerKey)
+    },
+    body: JSON.stringify(payload)
+  });
+  return handle(res, 'Failed to create announcement');
 };
