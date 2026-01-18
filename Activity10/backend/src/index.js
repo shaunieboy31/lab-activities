@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { Low } from 'lowdb';
 import { JSONFile } from 'lowdb/node';
 import QRCode from 'qrcode';
@@ -7,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
 import nodemailer from 'nodemailer';
+import swaggerSpec from './swagger.js';
 
 const app = express();
 const PORT = process.env.PORT || 3010;
@@ -14,13 +16,14 @@ const ORG_KEY = process.env.ORG_KEY || 'admin';
 const ADMIN_KEY = process.env.ADMIN_KEY || 'superadmin';
 
 // Email configuration - create test account if no env vars configured
+// Default to your Ethereal account unless env vars override
 let EMAIL_CONFIG = {
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
+  host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
+  port: process.env.EMAIL_PORT || 587,
   secure: process.env.EMAIL_SECURE === 'true',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: process.env.EMAIL_USER || 'vernon.rath69@ethereal.email',
+    pass: process.env.EMAIL_PASS || 'xkEMbYZMeTfBaCznrZ'
   }
 };
 
@@ -214,6 +217,13 @@ await backfillEvents();
 
 app.use(cors());
 app.use(express.json());
+
+// Swagger UI setup
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui { max-width: 1400px; margin: 0 auto; }',
+  customSiteTitle: 'QR Ticketing API - Documentation'
+}));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
